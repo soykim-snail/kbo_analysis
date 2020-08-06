@@ -104,6 +104,16 @@ save(kbo, file="kbo.RData")
 # load 함수로 불러서 쓸 수 있음 :예시) load(file="파일경로/kbo.RData")
 
 
+
+##################
+# 작업 편의를 위한 변수
+##################
+# 선수이름 라벨
+player_names <- kbo$player %>% select(PCODE, NAME) %>% distinct()
+
+
+
+
 #########################
 # 선수별 타율 구하기
 #########################
@@ -129,8 +139,26 @@ result <- kbo$hitter %>%
   summarise(sum_AB=sum(AB), sum_HIT=sum(HIT)) %>% 
   mutate(AVG=sum_HIT/sum_AB)
   
-print(result)
-  
 
+## 결과 출력
+left_join(result, player_names, by=c("P_ID" = "PCODE"))
+  
+############################################################################
 # (d) 특정 조건 (출전 경기수, 삼진 10개 이하 등등..)
-# to do ....
+############################################################################
+# 기간 중 30경기 이상 타자로 출전
+LOWER_BOUND_GAMES <- 30
+# 기간 중 삼진 10개 이하
+UPPER_BOUND_KK <- 10
+
+result2 <- kbo$hitter %>% 
+  filter(GDAY_DS >= start_date, GDAY_DS <= end_date) %>% 
+  select(T_ID, P_ID, KK, AB, HIT) %>%
+  group_by(T_ID, P_ID) %>% 
+  summarise(sum_game=n(), sum_KK=sum(KK), sum_AB=sum(AB), sum_HIT=sum(HIT)) %>% 
+  mutate(AVG=sum_HIT/sum_AB) %>% 
+  filter(sum_game >= LOWER_BOUND_GAMES, sum_KK <= UPPER_BOUND_KK )
+
+
+# 결과 출력
+left_join(result2,  player_names, by=c("P_ID" = "PCODE"))
