@@ -1,0 +1,95 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r }
+library(dplyr)
+?select
+?filter
+?arrange
+?mutate
+?summarise
+?group_by
+```
+
+## Including Plots
+
+
+```{r }
+load(file = "kbo.RData")
+kbo$pitcher
+
+```
+## select
+```{r}
+kbo$pitcher %>% select(-G_ID)
+kbo$pitcher %>% select(PA:HR)
+kbo$pitcher %>% select(contains("ID"))
+kbo$pitcher %>% select(ends_with("RT"))
+kbo$pitcher %>% select(starts_with("P"))
+kbo$pitcher %>% select(everything())
+kbo$pitcher %>% select(matches("^P.+T$"))
+kbo$pitcher %>% select(num_range(prefix = "H", range= 2:3))
+kbo$pitcher %>% select(one_of(c("PA", "AB", "RBI", "NOMATTER")))
+
+
+```
+
+
+## mutate
+- mutate로 선수들의 연봉을 비교해 봅시다.
+```{r}
+kbo$pitcher %>% select(AB, HIT) %>% mutate(AVG = HIT/AB)
+kbo$pitcher %>% select(P_ID, AB, HIT) %>% 
+  group_by(P_ID) %>% summarise(sum_AB=sum(AB), sum_HIT=sum(HIT)) %>% 
+  mutate(AVG=sum_HIT/sum_AB) %>% mutate(cume_dist(AVG), cumall(AVG), cumany(AVG), cummean(AVG)) %>% left_join(., kbo$player %>% select(PCODE, NAME) %>% distinct(), by=c("P_ID" = "PCODE")) %>% arrange(desc(AVG))
+
+
+DOLLAR_RATE <- 1200
+YEN_RATE <- 11
+money <- kbo$player %>% mutate(m = ifelse(grepl("만원", MONEY), sub("만원", "", MONEY), ifelse(grepl("달러", MONEY), sub("달러", "", MONEY), sub("엔", "", MONEY)     ))) %>% 
+  mutate(m = as.numeric(m)) %>% 
+  mutate(c = gsub("[0-9]", "", MONEY)) %>% 
+  mutate(curr =ifelse(c=="만원", 10000, ifelse(c=="달러", DOLLAR_RATE, ifelse(c=="엔", YEN_RATE,0)))) %>% 
+  mutate(mm = m*curr) %>% arrange(mm)
+money
+money %>% 
+  filter(T_ID=="OB", NAME=="이영하")
+
+```
+```{r}
+money %>% group_by(T_ID) %>% summarise(median=median(mm, na.rm = TRUE), sd=sd(mm, na.rm = TRUE), min=min(mm, na.rm = TRUE),  max=max(mm, na.rm = TRUE), n=n())
+
+```
+
+
+```{r}
+select(kbo$pitcher, G_ID:P_ID)
+kbo$pitcher %>% select(G_ID:P_ID)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

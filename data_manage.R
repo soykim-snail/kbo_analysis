@@ -71,7 +71,7 @@ hitter$GDAY_DS <- as.Date(as.character(hitter$GDAY_DS), "%Y%m%d")
 pitcher$GDAY_DS <- as.Date(as.character(pitcher$GDAY_DS), "%Y%m%d")
 player_register$GDAY_DS <- as.Date(as.character(player_register$GDAY_DS), "%Y%m%d")
 team_hitter$GDAY_DS <- as.Date(as.character(team_hitter$GDAY_DS), "%Y%m%d")
-team_pitcher <- as.Date(as.character(team_pitcher$GDAY_DS), "%Y%m%d")
+team_pitcher$GDAY_DS <- as.Date(as.character(team_pitcher$GDAY_DS), "%Y%m%d")
 
 # 연도, 선수번호 ... 등은 그냥 num으로 두어도 별탈 없을 듯하여, 일단 그냥 둠.
 # 이름, 팀명... 등을 chr 타입임. 일단 그냥 둠. 나중에 factor로 변경해야 햘 수 있음.
@@ -162,3 +162,16 @@ result2 <- kbo$hitter %>%
 
 # 결과 출력
 left_join(result2,  player_names, by=c("P_ID" = "PCODE"))
+
+
+###################################################################
+#
+# 데이터 마트 만들기!!
+#
+###################################################################
+# team_hitter 데이터와 team_pitcher 데이터 붙이기
+team_play <- inner_join(kbo$team_hitter, kbo$team_pitcher, by = c("G_ID", "GDAY_DS", "T_ID", "VS_T_ID", "HEADER_NO", "TB_SC"))
+team_play <- left_join(team_play, kbo$game[,c(1, 7)], by = "G_ID")
+View(team_play)
+
+save(team_play, file = "team_play.RData")
