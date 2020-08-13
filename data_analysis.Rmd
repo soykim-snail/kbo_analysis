@@ -1,0 +1,123 @@
+---
+---
+
+
+
+```{r}
+library(readxl)
+library(dplyr)
+```
+
+```{r}
+load(file="kbo.RData")
+```
+
+
+
+# 
+
+
+
+
+
+## 데이터 불러 오기
+
+```{r}
+path <- "../김정인/작업중/2016_final.xlsx"
+team_list <- kbo$team %>% filter(year==2016) %>% select(T_ID)
+stat_2016 <- data.frame()
+for (t in team_list$T_ID) {
+  temp_table <- read_excel(path = path, sheet = t )
+  stat_2016 <- bind_rows(stat_2016, temp_table)
+}
+str(stat_2016)
+any(is.na(stat_2016 %>% select(-S2)))
+
+stat_2016$S2[which(is.na(stat_2016$S2))] <- mean(stat_2016$S2) # 도루성공률의 결측치에 시즌평균을 대입
+str(stat_2016)
+```
+
+
+## 선형 회귀분석
+
+
+```{r}
+data_HH <- stat_2016 %>% filter(T_ID=="HH")
+plot(WR ~ P1+P2+P3+P4+D1+D2+D3+B1+B2+B3+B4+C1+C2+C3+C4+S1+S2, data = data_HH)
+
+```
+
+
+```{r}
+HH.lm <- lm(WR~ P1+P2+P3+P4+D1 +D2+D3 +B1+B2+B3+B4 +C1+C2+C3+C4 +S1+S2, data=data_HH)
+anova(HH.lm)
+summary(HH.lm)
+```
+
+
+
+## 잔차분석
+```{r}
+plot(HH.lm)
+```
+
+
+## 등분산성 검정
+```{r}
+resid(HH.lm)
+rstandard(HH.lm)
+```
+
+
+## 정규성 검정
+```{r}
+hist(rstandard(HH.lm))
+boxplot(rstandard(HH.lm))
+
+```
+
+
+## 독립성 검정
+```{r}
+library(lmtest)
+lmtest::dwtest(HH.lm)
+```
+
+
+# 전체 팀 대상
+
+```{r}
+all_teams.lm <- lm(WR~ P1+P2+P3+P4+D1 +D2+D3 +B1+B2+B3+B4 +C1+C2+C3+C4 +S1+S2, data=stat_2016)
+anova(all_teams.lm)
+summary(all_teams.lm)
+
+```
+
+# 로지스틱 회귀분석
+
+## 전체 팀
+
+```{r}
+logi.glm <- glm(formula = WS ~ P1+P2+P3+P4+D1+D2+D3+B1+B2+B3+B4+C1+C2+C3+C4+S1+S2, data = stat_2016)
+summary(logi.glm)
+```
+
+
+## 한화
+
+```{r}
+data_HH <- stat_2016 %>% filter(T_ID=="HH")
+
+logi.glm <- glm(formula = WS ~ P1+P2+P3+P4+D1+D2+D3+B1+B2+B3+B4+C1+C2+C3+C4+S1+S2, data = data_HH)
+summary(logi.glm)
+```
+
+
+# PCA 분석
+
+## 
+
+
+
+
+
