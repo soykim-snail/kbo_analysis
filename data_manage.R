@@ -227,14 +227,17 @@ data <- data %>% rename(P1=피안타율,
 
 ## 데이터 전처리
 
+data <- data %>% 
+# YEAR : 시즌
+  mutate(YEAR= substr(G_ID, 1, 4)) %>% 
+# 시즌과 팀으로 그루핑
+  group_by(YEAR, T_ID) %>% 
 # W :  이기면 "WIN", 지면 "LOOSE", 비겨도 "WIN"
-data <- data %>% mutate(W=ifelse(WLS=="L", "LOOSE", "WIN")) %>% 
+  mutate(W=ifelse(WLS=="L", "LOOSE", "WIN")) %>% 
 # WS : 이기면 3, 지면 0, 비기면 1
   mutate(WS=ifelse(WLS=="W", 3, ifelse(WLS=="D", 1, 0))) %>% 
 # WC : WS의 누계
-  mutate(WC=cumsum(WS)) %>% 
-# YEAR : 시즌
-  mutate(YEAR= substr(G_ID, 1, 4))
+  mutate(WC=cumsum(WS))
 
 
 # S2의 결측치를 시즌별 도루성공률평균으로 대체
@@ -297,21 +300,107 @@ write.csv(data_norm, file="data_norm.csv")
 
 
 
+##################################################################################################
+# 데이터 normalizing 하여 p1, p2, p3, d1, d2, d3, b1, b2, b3, b4, c1, c2, c3, c4, s1, s2 만들기
+##################################################################################################
+
+# inner fence 보다 작으면 0, 크면 1, 사이는 정규화
+# 즉, 하한은 Q1 - (1.5 * IQR), 상한은 Q3 + (1.5 * IQR)
+# D1은 IQR이 0이어서 계산중에 분모가 0, d1는 사용할 수 없음.
+
+data_norm_inner <- data %>% group_by(YEAR, T_ID) %>%
+  mutate(p1= ifelse(P1< quantile(P1, 0.25)-1.5*IQR(P1), 0, ifelse(P1< quantile(P1, 0.75)+1.5*IQR(P1), (P1-quantile(P1, 0.25)+1.5*IQR(P1))/(IQR(P1)*4), 1))) %>% 
+  mutate(p2= ifelse(P2< quantile(P2, 0.25)-1.5*IQR(P2), 0, ifelse(P2< quantile(P2, 0.75)+1.5*IQR(P2), (P2-quantile(P2, 0.25)+1.5*IQR(P2))/(IQR(P2)*4), 1))) %>% 
+  mutate(p3= ifelse(P3< quantile(P3, 0.25)-1.5*IQR(P3), 0, ifelse(P3< quantile(P3, 0.75)+1.5*IQR(P3), (P3-quantile(P3, 0.25)+1.5*IQR(P3))/(IQR(P3)*4), 1))) %>% 
+  mutate(p4= ifelse(P4< quantile(P4, 0.25)-1.5*IQR(P4), 0, ifelse(P4< quantile(P4, 0.75)+1.5*IQR(P4), (P4-quantile(P4, 0.25)+1.5*IQR(P4))/(IQR(P4)*4), 1))) %>% 
+  
+  mutate(d1= ifelse(D1< quantile(D1, 0.25)-1.5*IQR(D1), 0, ifelse(D1< quantile(D1, 0.75)+1.5*IQR(D1), (D1-quantile(D1, 0.25)+1.5*IQR(D1))/(IQR(D1)*4), 1))) %>% 
+  mutate(d2= ifelse(D2< quantile(D2, 0.25)-1.5*IQR(D2), 0, ifelse(D2< quantile(D2, 0.75)+1.5*IQR(D2), (D2-quantile(D2, 0.25)+1.5*IQR(D2))/(IQR(D2)*4), 1))) %>% 
+  mutate(d3= ifelse(D3< quantile(D3, 0.25)-1.5*IQR(D3), 0, ifelse(D3< quantile(D3, 0.75)+1.5*IQR(D3), (D3-quantile(D3, 0.25)+1.5*IQR(D3))/(IQR(D3)*4), 1))) %>% 
+  
+  mutate(b1= ifelse(B1< quantile(B1, 0.25)-1.5*IQR(B1), 0, ifelse(B1< quantile(B1, 0.75)+1.5*IQR(B1), (B1-quantile(B1, 0.25)+1.5*IQR(B1))/(IQR(B1)*4), 1))) %>% 
+  mutate(b2= ifelse(B2< quantile(B2, 0.25)-1.5*IQR(B2), 0, ifelse(B2< quantile(B2, 0.75)+1.5*IQR(B2), (B2-quantile(B2, 0.25)+1.5*IQR(B2))/(IQR(B2)*4), 1))) %>% 
+  mutate(b3= ifelse(B3< quantile(B3, 0.25)-1.5*IQR(B3), 0, ifelse(B3< quantile(B3, 0.75)+1.5*IQR(B3), (B3-quantile(B3, 0.25)+1.5*IQR(B3))/(IQR(B3)*4), 1))) %>% 
+  mutate(b4= ifelse(B4< quantile(B4, 0.25)-1.5*IQR(B4), 0, ifelse(B4< quantile(B4, 0.75)+1.5*IQR(B4), (B4-quantile(B4, 0.25)+1.5*IQR(B4))/(IQR(B4)*4), 1))) %>% 
+  
+  mutate(c1= ifelse(C1< quantile(C1, 0.25)-1.5*IQR(C1), 0, ifelse(C1< quantile(C1, 0.75)+1.5*IQR(C1), (C1-quantile(C1, 0.25)+1.5*IQR(C1))/(IQR(C1)*4), 1))) %>% 
+  mutate(c2= ifelse(C2< quantile(C2, 0.25)-1.5*IQR(C2), 0, ifelse(C2< quantile(C2, 0.75)+1.5*IQR(C2), (C2-quantile(C2, 0.25)+1.5*IQR(C2))/(IQR(C2)*4), 1))) %>% 
+  mutate(c3= ifelse(C3< quantile(C3, 0.25)-1.5*IQR(C3), 0, ifelse(C3< quantile(C3, 0.75)+1.5*IQR(C3), (C3-quantile(C3, 0.25)+1.5*IQR(C3))/(IQR(C3)*4), 1))) %>% 
+  mutate(c4= ifelse(C4< quantile(C4, 0.25)-1.5*IQR(C4), 0, ifelse(C4< quantile(C4, 0.75)+1.5*IQR(C4), (C4-quantile(C4, 0.25)+1.5*IQR(C4))/(IQR(C4)*4), 1))) %>% 
+  
+  mutate(s1= ifelse(S1< quantile(S1, 0.25)-1.5*IQR(S1), 0, ifelse(S1< quantile(S1, 0.75)+1.5*IQR(S1), (S1-quantile(S1, 0.25)+1.5*IQR(S1))/(IQR(S1)*4), 1))) %>% 
+  mutate(s2= ifelse(S2< quantile(S2, 0.25)-1.5*IQR(S2), 0, ifelse(S2< quantile(S2, 0.75)+1.5*IQR(S2), (S2-quantile(S2, 0.25)+1.5*IQR(S2))/(IQR(S2)*4), 1))) %>% 
+  ungroup()
+
+str(data_norm_inner)
+
+save(data_norm_inner, file="data_norm.RData")
+write.csv(data_norm_inner, file="data_norm.csv")
 
 
+#############################################################################################
+# 수정된 data_norm_2.csv를 변경하기
+#############################################################################################
+# 수정 내용은 p1,.... s1을 min max 노말라이즈 하기
+
+data_norm_2 <- read.csv("data_norm_2.csv")
+
+str(data_norm_2)
+
+data_norm_3 <- data_norm_2 %>% group_by(YEAR) %>% mutate(p1=(P1-min(P1))/(max(P1)-min(P1)),
+                                          p2=(P2-min(P2))/(max(P2)-min(P2)),
+                                          p3=(P3-min(P3))/(max(P3)-min(P3)),
+                                          p4=(P4-min(P4))/(max(P4)-min(P4)),
+                                          d1=(D1-min(D1))/(max(D1)-min(D1)),
+                                          d2=(D2-min(D2))/(max(D2)-min(D2)),
+                                          d3=(D3-min(D3))/(max(D3)-min(D3)),
+                                          b1=(B1-min(B1))/(max(B1)-min(B1)),
+                                          b2=(B2-min(B2))/(max(B2)-min(B2)),
+                                          b3=(B3-min(B3))/(max(B3)-min(B3)),
+                                          b4=(B4-min(B4))/(max(B4)-min(B4)),
+                                          c1=(C1-min(C1))/(max(C1)-min(C1)),
+                                          c2=(C2-min(C2))/(max(C2)-min(C2)),
+                                          c3=(C3-min(C3))/(max(C3)-min(C3)),
+                                          c4=(C4-min(C4))/(max(C4)-min(C4)),
+                                          s1=(S1-min(S1))/(max(S1)-min(S1)),
+                                          s2=(S2-min(S2))/(max(S2)-min(S2)))
+
+write.csv(data_norm_3, file="data_norm_3.csv")
+
+##############################################################################################################
+# data_norm_3와 2016_validation.csv 를 검증하려 함. .... 작동하지 않음.
+
+validation_2016 <- read.csv("2016_validation.csv")
+str(validation_2016)
+
+data_norm_3_2016 <- read.csv("data_norm_3.csv") %>% filter(YEAR==2016)
+str(data_norm_3_2016)
+ 
+cbind(validation_2016, data_norm_3_2016)  # 오류!! number of rows of result is not a multiple of vector length (arg 1)
+inner_join(data_norm_3_2016,validation_2016, by=c("no", "T_ID")) %>% mutate(v_p2=p2.x==p2.y) %>% select(v_p2) %>% table()
+inner_join(data_norm_3_2016,validation_2016, by=c("no", "T_ID")) %>% select(no, T_ID, p1.x, p1.y) %>% mutate(v_p1=p1.x==p1.y)
+table(data_norm_3_2016$p1 == validation_2016$p1)
+table(data_norm_3_2016$p2 == validation_2016$p2)
 
 
+##########################################################################
+# 승점의 추이를 시각화
+##########################################################################
+library(ggplot2)
+# install.packages("plotly")
+library(plotly)
+data_g <- data %>% mutate(GDAY_DS=as.Date(as.character(GDAY_DS), "%Y%m%d"))
+ 
 
+year = 2019  # 연도를 2016~ 2020 하나씩 바꿔가며 저장한다  
 
+{
+  data_g_year <- data_g %>% filter(YEAR==year)
+  g <- ggplot(data=data_g_year, mapping = aes(x=GDAY_DS, y=WC, group= T_ID, color=T_ID))+geom_line()+geom_point()
+  ggplotly(g)
+}
 
-
-
-
-
-
-
-
-
+# TODO ... 반복문 코딩하기기
 
 
 
