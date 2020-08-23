@@ -367,6 +367,8 @@ data_norm_3 <- data_norm_2 %>% group_by(YEAR) %>% mutate(p1=(P1-min(P1))/(max(P1
 
 write.csv(data_norm_3, file="data_norm_3.csv")
 
+
+### mutate_at, mutate_all, ....
 ##############################################################################################################
 # data_norm_3와 2016_validation.csv 를 검증하려 함. .... 작동하지 않음.
 

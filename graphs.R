@@ -89,11 +89,52 @@ team_spider <- function(T_ID){
 ###############################
 # 10개 구단의 시즌별 변동 챠트
 
-par(mfrow=c(2,5))
+op <- par(no.readonly = TRUE)
+par(mfrow=c(2,5), oma=c(4, 1, 1, 1))
 for(T_ID in team_list$T_ID){
   team_spider(T_ID)
+  # box(which = "outer", lty = 1, col="red")
+  # box(which = "inner", lty = 1, col="blue")
+  # box(which = "figure", lty = 1, col="pink")
+  # box(which = "plot", lty = 1, col="black")
+}
+par(op)
+###############################
+
+###############################################################
+#### 기초 스탯에 대한 10개 구단의 시즌별 변동 챠트
+## 챠트 함수를 정의
+team_spider_general <- function(T_ID){
+  stars(stat_general_by_T_Y[stat_general_by_T_Y$T_ID==T_ID, colnames(stat_general_by_T_Y)[c(-1, -2)]], 
+        location = c(0,0), key.loc = c(0,0), scale = TRUE,
+        col.lines = c(1:length(2016:2020)))
+  title(main = paste("General Spider Plot,", T_ID, "팀 각 시즌"))
 }
 
-####################################################
-# doBy 패키지로 거미줄 챠트 그리기
-####################################################
+## 데이터 정리 ..... P1, P2, .... S2를 정규화 없이
+stat_general_by_T_Y <-  data %>% group_by(T_ID, YEAR) %>% 
+  summarise(P1=mean(P1), P2=mean(P2), P3=mean(P3), P4=mean(P4),
+            D1=mean(D1), D2=mean(D2), D3=mean(D3),
+            B1=mean(B1), B2=mean(B2), B3=mean(B3), B4=mean(B4), 
+            C1=mean(C1), C2=mean(C2), C3=mean(C3), C4=mean(C4),
+            S1=mean(S1), S2=mean(S2)) 
+stat_general_by_T_Y <- as.data.frame(stat_general_by_T_Y)
+rownames(stat_general_by_T_Y) <- paste(stat_general_by_T_Y$T_ID, stat_general_by_T_Y$YEAR, sep="_")
+head(stat_general_by_T_Y)
+
+## 챠트 그리기
+op <- par(no.readonly = TRUE)
+par(mfrow=c(2,5), oma=c(4, 1, 1, 1))
+for(T_ID in team_list$T_ID){
+  team_spider_general(T_ID)
+}
+# legend(x=5, y=5, legend = rownames(stat_general_by_T_Y), lty = 2, col=c(1:10), lwd = 2)
+#######################
+
+par(op)
+
+
+
+
+
+
