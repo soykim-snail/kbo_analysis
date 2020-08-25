@@ -126,17 +126,22 @@ for (m in seq(500, 10000, length.out = 100)){
   print(paste(t_id, m, find_M(m, t_id)))
 }
 
-##########################################################################################################3
-############# 덮어 쓰기 
-################################################
-## 2016~2019 훈련, 2020 검증, 테스트 없음
-################################################
+##########################################################################################################
+#############  함수 정의하여 덮어쓰기
+##########################################################################################################
+# 위의 사례를 일반화 하여 함수에 담아 보았다.
 
-do_randomForest(train_year = 2016:2018, val_year = 2019, test_year = 2020)
-do_randomForest(train_year = 2016:2019, val_year = 2020, test_year = NULL)
-do_randomForest(train_year = 2016:2018, val_year = 2020, test_year = NULL)
+#######################################################
+# train_year   = Training set으로 사용한 데이터
+# val_year     = Validation set으로 사용한 데이터
+# test_year    = Test set으로 사용한 데이터
+######################################################
 
-########################################
+do_randomForest(train_year = 2016:2018, val_year = 2019, test_year = 2020) ## 2026~2018 훈련, 2019 검증, 2020 테스트
+do_randomForest(train_year = 2016:2019, val_year = 2020, test_year = NULL) ## 2016~2019 훈련, 2020 검증, 테스트 없음
+do_randomForest(train_year = 2016:2018, val_year = 2020, test_year = NULL) ## 2016~2018 훈련, 2019 훈련에 사용하지 않음
+
+
 ## 함수 정의
 
 do_randomForest <- function(train_year, val_year, test_year=NULL){
@@ -152,10 +157,9 @@ do_randomForest <- function(train_year, val_year, test_year=NULL){
     }
   }
   
-  ############################
-  #### Bagging
-  print("## Bagging ##")
-  ############################
+  print("############################")
+  print("## Bagging                ##")
+  print("############################")
   
   
   fit.bagg      <- list(HH=NULL, HT=NULL, KT=NULL, LG=NULL, LT=NULL, NC=NULL, OB=NULL, SK=NULL, SS=NULL, WO=NULL)
@@ -176,10 +180,9 @@ do_randomForest <- function(train_year, val_year, test_year=NULL){
     head(pred_p.bagg[[i]])
   }
   
-  ##############################
-  #### Boosting
-  print("## Boosting ##")
-  ##############################
+  print("##############################")
+  print("## Boosting                 ##")
+  print("##############################")
   
   fit.boosting      <- list(HH=NULL, HT=NULL, KT=NULL, LG=NULL, LT=NULL, NC=NULL, OB=NULL, SK=NULL, SS=NULL, WO=NULL)
   pred_p.boosting   <- list(HH=NULL, HT=NULL, KT=NULL, LG=NULL, LT=NULL, NC=NULL, OB=NULL, SK=NULL, SS=NULL, WO=NULL)
@@ -207,5 +210,12 @@ do_randomForest <- function(train_year, val_year, test_year=NULL){
 }
 
 
+#############################
+## 머신러닝 결과 분석하기
 
+# HT의 모델학습 결과
+str(fit.bagg[[2]])
+str(fit.boosting[[2]])
 
+# TODO... 어떻게 해석하는가?
+# TODO... Random Forest와 Bagging, Boosting의 차이점은??
